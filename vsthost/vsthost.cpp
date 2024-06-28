@@ -3,6 +3,8 @@
 #include "aeffect.h"
 #include "aeffectx.h"
 
+#include <string>
+
 typedef AEffect* (VSTCALLBACK* main_func)(audioMasterCallback audioMaster);
 
 // #define LOG_EXCHANGE
@@ -19,7 +21,7 @@ enum
 bool need_idle = false;
 bool idle_started = false;
 
-static char* dll_dir = nullptr;
+static std::string dll_dir;
 
 static HANDLE null_file = nullptr;
 static HANDLE pipe_in = nullptr;
@@ -345,7 +347,7 @@ static VstIntPtr VSTCALLBACK audioMaster(AEffect* effect, VstInt32 opcode, VstIn
         break;
 
     case audioMasterGetDirectory:
-        return (VstIntPtr)dll_dir;
+        return (VstIntPtr)dll_dir.c_str();
 
         /* More crap */
     case DECLARE_VST_DEPRECATED(audioMasterNeedIdle):
@@ -370,35 +372,27 @@ LONG __stdcall myExceptFilterProc(LPEXCEPTION_POINTERS param)
     }
 }
 
-int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
+int main(int argc, const char* argv[])
 {
-    int argc = 0;
-
-    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-
     if (argv == nullptr || argc != 3)
         return 1;
 
-    wchar_t* end_char = nullptr;
+    char* end_char = nullptr;
 
-#ifdef NDEBUG
-    unsigned Cookie = ::wcstoul(argv[2], &end_char, 16);
+    unsigned Cookie = ::strtoul(argv[2], &end_char, 16);
 
     if (end_char == argv[2] || *end_char)
         return 2;
-#endif
 
     uint32_t Sum = 0;
 
-    end_char = argv[1];
+    end_char = (char *)argv[1];
 
     while (*end_char)
-        Sum += (WCHAR)(*end_char++ * 820109);
+        Sum += *end_char++ * 820109;
 
-#ifdef NDEBUG
     if (Sum != Cookie)
         return 3;
-#endif
 
     unsigned code = 0;
 
@@ -411,7 +405,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
     std::vector<uint8_t> chunk;
     std::vector<float> sample_buffer;
 
-    null_file = ::CreateFileW(_T("NUL"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+    null_file = ::CreateFileA("NUL", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
     pipe_in = ::GetStdHandle(STD_INPUT_HANDLE);
     pipe_out = ::GetStdHandle(STD_OUTPUT_HANDLE);
@@ -436,12 +430,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
     SetUnhandledExceptionFilter(myExceptFilterProc);
 #endif
 
-    size_t dll_name_len = ::wcslen(argv[1]);
-    dll_dir = (char*)::malloc(dll_name_len + 1);
-    ::wcstombs(dll_dir, argv[1], dll_name_len);
-    dll_dir[dll_name_len] = '\0';
-    char* slash = ::strrchr(dll_dir, '\\');
-    *slash = '\0';
+    dll_dir = argv[1];
+    dll_dir = dll_dir.substr(0, dll_dir.find_last_of("/\\") + 1);
 
     float** float_list_in = nullptr;
     float** float_list_out = nullptr;
@@ -451,7 +441,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
     AEffect* Effect[3] = { 0, 0, 0 };
     main_func Main;
 
-    HMODULE hDll = ::LoadLibraryW(argv[1]);
+    HMODULE hDll = ::LoadLibraryA(argv[1]);
 
     if (hDll == 0)
     {
@@ -1104,12 +1094,6 @@ exit:
         FreeLibrary(hDll);
 
     CoUninitialize();
-
-    if (dll_dir)
-        free(dll_dir);
-
-    if (argv)
-        LocalFree(argv);
 
     put_code(code);
 
