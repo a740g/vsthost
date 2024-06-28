@@ -26,7 +26,7 @@ static HANDLE pipe_in = nullptr;
 static HANDLE pipe_out = nullptr;
 
 #pragma pack(push, 8)
-#pragma warning(disable: 4820) // x bytes padding added after data member
+#pragma warning(disable : 4820) // x bytes padding added after data member
 struct myVstEvent
 {
     struct myVstEvent* next;
@@ -38,8 +38,8 @@ struct myVstEvent
         VstMidiEvent midiEvent;
         VstMidiSysexEvent sysexEvent;
     } ev;
-}*_EventHead = nullptr, * evTail = nullptr;
-#pragma warning(default: 4820) // x bytes padding added after data member
+} *_EventHead = nullptr, * evTail = nullptr;
+#pragma warning(default : 4820) // x bytes padding added after data member
 #pragma pack(pop)
 
 void freeChain()
@@ -260,7 +260,7 @@ INT_PTR CALLBACK EditorProc(HWND hwnd, UINT msg, WPARAM, LPARAM lParam) noexcept
                 RECT wRect;
 
                 ::SetRect(&wRect, 0, 0, width, height);
-                ::AdjustWindowRectEx(&wRect, (DWORD) ::GetWindowLongW(hwnd, GWL_STYLE), FALSE, (DWORD) ::GetWindowLongW(hwnd, GWL_EXSTYLE));
+                ::AdjustWindowRectEx(&wRect, (DWORD)::GetWindowLongW(hwnd, GWL_STYLE), FALSE, (DWORD)::GetWindowLongW(hwnd, GWL_EXSTYLE));
 
                 width = wRect.right - wRect.left;
                 height = wRect.bottom - wRect.top;
@@ -268,10 +268,11 @@ INT_PTR CALLBACK EditorProc(HWND hwnd, UINT msg, WPARAM, LPARAM lParam) noexcept
                 ::SetWindowPos(hwnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE);
             }
         }
-    } break;
+    }
+    break;
 
     case WM_TIMER:
-        effect = (AEffect*) ::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+        effect = (AEffect*)::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 
         if (effect)
             effect->dispatcher(effect, effEditIdle, 0, 0, 0, 0);
@@ -279,7 +280,7 @@ INT_PTR CALLBACK EditorProc(HWND hwnd, UINT msg, WPARAM, LPARAM lParam) noexcept
 
     case WM_CLOSE:
     {
-        effect = (AEffect*) ::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+        effect = (AEffect*)::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 
         ::KillTimer(hwnd, 1);
 
@@ -401,7 +402,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
     unsigned code = 0;
 
-    audioMasterData effectData[3] = { { 0 }, { 1 }, { 2 } };
+    audioMasterData effectData[3] = { {0}, {1}, {2} };
 
     std::vector<uint8_t> State;
 
@@ -422,8 +423,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
         INITCOMMONCONTROLSEX icc =
         {
             sizeof(icc),
-            ICC_WIN95_CLASSES | ICC_COOL_CLASSES | ICC_STANDARD_CLASSES
-        };
+            ICC_WIN95_CLASSES | ICC_COOL_CLASSES | ICC_STANDARD_CLASSES };
 
         if (!::InitCommonControlsEx(&icc))
             return 4;
@@ -437,7 +437,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 #endif
 
     size_t dll_name_len = ::wcslen(argv[1]);
-    dll_dir = (char*) ::malloc(dll_name_len + 1);
+    dll_dir = (char*)::malloc(dll_name_len + 1);
     ::wcstombs(dll_dir, argv[1], dll_name_len);
     dll_dir[dll_name_len] = '\0';
     char* slash = ::strrchr(dll_dir, '\\');
@@ -459,16 +459,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
         goto exit;
     }
 
-#pragma warning(disable: 4191) //unsafe conversion from 'FARPROC' to 'main_func'
-    Main = (main_func) ::GetProcAddress(hDll, "VSTPluginMain");
+#pragma warning(disable : 4191) // unsafe conversion from 'FARPROC' to 'main_func'
+    Main = (main_func)::GetProcAddress(hDll, "VSTPluginMain");
 
     if (Main == nullptr)
     {
-        Main = (main_func) ::GetProcAddress(hDll, "main");
+        Main = (main_func)::GetProcAddress(hDll, "main");
 
         if (Main == nullptr)
         {
-            Main = (main_func) ::GetProcAddress(hDll, "MAIN");
+            Main = (main_func)::GetProcAddress(hDll, "MAIN");
 
             if (Main == nullptr)
             {
@@ -514,9 +514,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
         Effect[0]->dispatcher(Effect[0], effGetVendorString, 0, 0, &vendor_string, 0);
         Effect[0]->dispatcher(Effect[0], effGetProductString, 0, 0, &product_string, 0);
 
-        name_string_length = (uint32_t) ::strlen(name_string);
-        vendor_string_length = (uint32_t) ::strlen(vendor_string);
-        product_string_length = (uint32_t) ::strlen(product_string);
+        name_string_length = (uint32_t)::strlen(name_string);
+        vendor_string_length = (uint32_t)::strlen(vendor_string);
+        product_string_length = (uint32_t)::strlen(product_string);
         vendor_version = (uint32_t)Effect[0]->dispatcher(Effect[0], effGetVendorVersion, 0, 0, 0, 0);
         unique_id = (uint32_t)Effect[0]->uniqueID;
 
@@ -561,7 +561,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
         {
             uint32_t size = get_code();
             chunk.resize(size);
-            if (size) get_bytes(chunk.data(), size);
+            if (size)
+                get_bytes(chunk.data(), size);
 
             setChunk(Effect[0], chunk);
             setChunk(Effect[1], chunk);
@@ -706,7 +707,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
                     _EventHead = ev;
 
                 uint32_t size = get_code();
-                uint32_t port = size >> 24; size &= 0xFFFFFF;
+                uint32_t port = size >> 24;
+                size &= 0xFFFFFF;
 
                 ev->port = port;
 
@@ -716,7 +718,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
                 ev->ev.sysexEvent.type = kVstSysExType;
                 ev->ev.sysexEvent.byteSize = sizeof(ev->ev.sysexEvent);
                 ev->ev.sysexEvent.dumpBytes = (VstInt32)size;
-                ev->ev.sysexEvent.sysexDump = (char*) ::malloc(size);
+                ev->ev.sysexEvent.sysexDump = (char*)::malloc(size);
 
                 get_bytes(ev->ev.sysexEvent.sysexDump, size);
 
@@ -781,7 +783,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
                     {
                         size_t buffer_size = sizeof(float*) * (Effect[0]->numInputs + (Effect[0]->numOutputs * 3)); // float lists
 
-                        buffer_size += sizeof(float) * BUFFER_SIZE; // null input
+                        buffer_size += sizeof(float) * BUFFER_SIZE;                             // null input
                         buffer_size += sizeof(float) * BUFFER_SIZE * Effect[0]->numOutputs * 3; // outputs
 
                         State.resize(buffer_size);
@@ -921,9 +923,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
                 if (!idle_started)
                 {
-                    if (events[0]) Effect[0]->dispatcher(Effect[0], effProcessEvents, 0, 0, events[0], 0);
-                    if (events[1]) Effect[1]->dispatcher(Effect[1], effProcessEvents, 0, 0, events[1], 0);
-                    if (events[2]) Effect[2]->dispatcher(Effect[2], effProcessEvents, 0, 0, events[2], 0);
+                    if (events[0])
+                        Effect[0]->dispatcher(Effect[0], effProcessEvents, 0, 0, events[0], 0);
+                    if (events[1])
+                        Effect[1]->dispatcher(Effect[1], effProcessEvents, 0, 0, events[1], 0);
+                    if (events[2])
+                        Effect[2]->dispatcher(Effect[2], effProcessEvents, 0, 0, events[2], 0);
 
                     idle_started = true;
                 }
@@ -1002,18 +1007,21 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
         {
             myVstEvent* ev = (myVstEvent*)calloc(sizeof(myVstEvent), 1);
 
-            if (evTail) evTail->next = ev;
+            if (evTail)
+                evTail->next = ev;
 
             evTail = ev;
 
-            if (!_EventHead) _EventHead = ev;
+            if (!_EventHead)
+                _EventHead = ev;
 
             uint32_t b = get_code();
             uint32_t timestamp = get_code();
 
             ev->port = (b & 0x7F000000) >> 24;
 
-            if (ev->port > 2) ev->port = 2;
+            if (ev->port > 2)
+                ev->port = 2;
 
             ev->ev.midiEvent.type = kVstMidiType;
             ev->ev.midiEvent.byteSize = sizeof(ev->ev.midiEvent);
@@ -1028,11 +1036,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
         {
             myVstEvent* ev = (myVstEvent*)calloc(sizeof(myVstEvent), 1);
 
-            if (evTail) evTail->next = ev;
+            if (evTail)
+                evTail->next = ev;
 
             evTail = ev;
 
-            if (!_EventHead) _EventHead = ev;
+            if (!_EventHead)
+                _EventHead = ev;
 
             uint32_t size = get_code();
             uint32_t port = size >> 24;
@@ -1041,7 +1051,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
             uint32_t timestamp = get_code();
 
             ev->port = port;
-            if (ev->port > 2) ev->port = 0;
+            if (ev->port > 2)
+                ev->port = 0;
             ev->ev.sysexEvent.type = kVstSysExType;
             ev->ev.sysexEvent.byteSize = sizeof(ev->ev.sysexEvent);
             ev->ev.sysexEvent.dumpBytes = (VstInt32)size;
