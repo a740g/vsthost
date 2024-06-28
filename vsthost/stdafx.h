@@ -25,13 +25,6 @@
 #include <vector>
 #include <string>
 
-#ifndef min
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#endif
-#ifndef max
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#endif
-
 enum class VSTHostCommand : uint32_t
 {
     Exit = 0,
@@ -54,7 +47,7 @@ enum
 };
 
 template <typename T>
-static void append_be(std::vector<uint8_t> &out, const T &value)
+static void append_be(std::vector<uint8_t>& out, const T& value)
 {
     union
     {
@@ -71,7 +64,7 @@ static void append_be(std::vector<uint8_t> &out, const T &value)
 }
 
 template <typename T>
-static void retrieve_be(T &out, const uint8_t *&in, unsigned &size)
+static void retrieve_be(T& out, const uint8_t*& in, unsigned& size)
 {
     if (size < sizeof(T))
         return;

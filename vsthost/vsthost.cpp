@@ -3,7 +3,7 @@
 #include "aeffect.h"
 #include "aeffectx.h"
 
-typedef AEffect *(VSTCALLBACK *main_func)(audioMasterCallback audioMaster);
+typedef AEffect* (VSTCALLBACK* main_func)(audioMasterCallback audioMaster);
 
 // #define LOG_EXCHANGE
 
@@ -24,7 +24,7 @@ static HANDLE pipe_out = nullptr;
 #pragma warning(disable : 4820) // x bytes padding added after data member
 struct myVstEvent
 {
-    struct myVstEvent *next;
+    struct myVstEvent* next;
 
     unsigned port;
 
@@ -33,17 +33,17 @@ struct myVstEvent
         VstMidiEvent midiEvent;
         VstMidiSysexEvent sysexEvent;
     } ev;
-} *_EventHead = nullptr, *evTail = nullptr;
+} *_EventHead = nullptr, * evTail = nullptr;
 #pragma warning(default : 4820) // x bytes padding added after data member
 #pragma pack(pop)
 
 void freeChain()
 {
-    myVstEvent *ev = _EventHead;
+    myVstEvent* ev = _EventHead;
 
     while (ev)
     {
-        myVstEvent *next = ev->next;
+        myVstEvent* next = ev->next;
 
         if (ev->port && ev->ev.sysexEvent.type == kVstSysExType)
             free(ev->ev.sysexEvent.sysexDump);
@@ -57,7 +57,7 @@ void freeChain()
     evTail = nullptr;
 }
 
-void put_bytes(const void *out, uint32_t size)
+void put_bytes(const void* out, uint32_t size)
 {
     DWORD BytesWritten;
 
@@ -66,7 +66,7 @@ void put_bytes(const void *out, uint32_t size)
 #ifdef LOG_EXCHANGE
     TCHAR logfile[MAX_PATH];
     _stprintf_s(logfile, _T("C:\\temp\\log\\bytes_%08u.out"), exchange_count++);
-    FILE *f = _tfopen(logfile, _T("wb"));
+    FILE* f = _tfopen(logfile, _T("wb"));
     fwrite(out, 1, size, f);
     fclose(f);
 #endif
@@ -77,7 +77,7 @@ void put_code(uint32_t code)
     put_bytes(&code, sizeof(code));
 }
 
-void get_bytes(void *in, uint32_t size)
+void get_bytes(void* in, uint32_t size)
 {
     DWORD BytesRead;
 
@@ -88,7 +88,7 @@ void get_bytes(void *in, uint32_t size)
 #ifdef LOG_EXCHANGE
         TCHAR logfile[MAX_PATH];
         _stprintf_s(logfile, _T("C:\\temp\\log\\bytes_%08u.err"), exchange_count++);
-        FILE *f = _tfopen(logfile, _T("wb"));
+        FILE* f = _tfopen(logfile, _T("wb"));
         _ftprintf(f, _T("Wanted %u bytes, got %u"), size, BytesRead);
         fclose(f);
 #endif
@@ -98,7 +98,7 @@ void get_bytes(void *in, uint32_t size)
 #ifdef LOG_EXCHANGE
         TCHAR logfile[MAX_PATH];
         _stprintf_s(logfile, _T("C:\\temp\\log\\bytes_%08u.in"), exchange_count++);
-        FILE *f = _tfopen(logfile, _T("wb"));
+        FILE* f = _tfopen(logfile, _T("wb"));
         fwrite(in, 1, size, f);
         fclose(f);
 #endif
@@ -114,7 +114,7 @@ uint32_t get_code()
     return code;
 }
 
-void getChunk(AEffect *effect, std::vector<uint8_t> &out)
+void getChunk(AEffect* effect, std::vector<uint8_t>& out)
 {
     out.resize(0);
 
@@ -141,7 +141,7 @@ void getChunk(AEffect *effect, std::vector<uint8_t> &out)
     }
     else
     {
-        void *chunk;
+        void* chunk;
 
         uint32_t size = (uint32_t)effect->dispatcher(effect, effGetChunk, 0, 0, &chunk, 0);
 
@@ -155,14 +155,14 @@ void getChunk(AEffect *effect, std::vector<uint8_t> &out)
     }
 }
 
-void setChunk(AEffect *pEffect, std::vector<uint8_t> const &in)
+void setChunk(AEffect* pEffect, std::vector<uint8_t> const& in)
 {
     uint32_t size = (uint32_t)in.size();
 
     if (pEffect == nullptr || size == 0)
         return;
 
-    const uint8_t *inc = in.data();
+    const uint8_t* inc = in.data();
 
     uint32_t effect_id;
 
@@ -205,7 +205,7 @@ void setChunk(AEffect *pEffect, std::vector<uint8_t> const &in)
         if (chunk_size > size)
             return;
 
-        pEffect->dispatcher(pEffect, effSetChunk, 0, (VstIntPtr)chunk_size, (void *)inc, 0);
+        pEffect->dispatcher(pEffect, effSetChunk, 0, (VstIntPtr)chunk_size, (void*)inc, 0);
     }
 }
 
@@ -221,7 +221,7 @@ struct MyDLGTEMPLATE : DLGTEMPLATE
 
 INT_PTR CALLBACK EditorProc(HWND hwnd, UINT msg, WPARAM, LPARAM lParam) noexcept
 {
-    AEffect *effect;
+    AEffect* effect;
 
     switch (msg)
     {
@@ -229,7 +229,7 @@ INT_PTR CALLBACK EditorProc(HWND hwnd, UINT msg, WPARAM, LPARAM lParam) noexcept
     {
         ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, lParam);
 
-        effect = (AEffect *)lParam;
+        effect = (AEffect*)lParam;
 
         ::SetWindowTextW(hwnd, L"VST Editor");
         ::SetTimer(hwnd, 1, 20, 0);
@@ -238,7 +238,7 @@ INT_PTR CALLBACK EditorProc(HWND hwnd, UINT msg, WPARAM, LPARAM lParam) noexcept
         {
             effect->dispatcher(effect, effEditOpen, 0, 0, hwnd, 0);
 
-            ERect *eRect = 0;
+            ERect* eRect = 0;
 
             effect->dispatcher(effect, effEditGetRect, 0, 0, &eRect, 0);
 
@@ -267,7 +267,7 @@ INT_PTR CALLBACK EditorProc(HWND hwnd, UINT msg, WPARAM, LPARAM lParam) noexcept
     break;
 
     case WM_TIMER:
-        effect = (AEffect *)::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+        effect = (AEffect*)::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 
         if (effect)
             effect->dispatcher(effect, effEditIdle, 0, 0, 0, 0);
@@ -275,7 +275,7 @@ INT_PTR CALLBACK EditorProc(HWND hwnd, UINT msg, WPARAM, LPARAM lParam) noexcept
 
     case WM_CLOSE:
     {
-        effect = (AEffect *)::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+        effect = (AEffect*)::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
 
         ::KillTimer(hwnd, 1);
 
@@ -295,12 +295,12 @@ struct audioMasterData
     VstIntPtr effect_number;
 };
 
-static VstIntPtr VSTCALLBACK audioMaster(AEffect *effect, VstInt32 opcode, VstInt32, VstIntPtr, void *ptr, float)
+static VstIntPtr VSTCALLBACK audioMaster(AEffect* effect, VstInt32 opcode, VstInt32, VstIntPtr, void* ptr, float)
 {
-    audioMasterData *data = nullptr;
+    audioMasterData* data = nullptr;
 
     if (effect)
-        data = (audioMasterData *)effect->user;
+        data = (audioMasterData*)effect->user;
 
     switch (opcode)
     {
@@ -313,11 +313,11 @@ static VstIntPtr VSTCALLBACK audioMaster(AEffect *effect, VstInt32 opcode, VstIn
         break;
 
     case audioMasterGetVendorString:
-        strncpy((char *)ptr, "NoWork, Inc.", 64);
+        strncpy((char*)ptr, "NoWork, Inc.", 64);
         break;
 
     case audioMasterGetProductString:
-        strncpy((char *)ptr, "VSTi Host Bridge", 64);
+        strncpy((char*)ptr, "VSTi Host Bridge", 64);
         break;
 
     case audioMasterGetVendorVersion:
@@ -329,7 +329,7 @@ static VstIntPtr VSTCALLBACK audioMaster(AEffect *effect, VstInt32 opcode, VstIn
     case audioMasterVendorSpecific: // Steinberg HACK
         if (ptr)
         {
-            uint32_t *blah = (uint32_t *)(((char *)ptr) - 4);
+            uint32_t* blah = (uint32_t*)(((char*)ptr) - 4);
             if (*blah == 0x0737bb68)
             {
                 *blah ^= 0x5CC8F349;
@@ -365,12 +365,12 @@ LONG __stdcall myExceptFilterProc(LPEXCEPTION_POINTERS param)
     }
 }
 
-int main(int argc, const char *argv[])
+int main(int argc, const char* argv[])
 {
     if (argv == nullptr || argc != 3)
         return 1;
 
-    char *end_char = nullptr;
+    char* end_char = nullptr;
 
     unsigned Cookie = ::strtoul(argv[2], &end_char, 16);
 
@@ -379,7 +379,7 @@ int main(int argc, const char *argv[])
 
     uint32_t Sum = 0;
 
-    end_char = (char *)argv[1];
+    end_char = (char*)argv[1];
 
     while (*end_char)
         Sum += *end_char++ * 820109;
@@ -389,7 +389,7 @@ int main(int argc, const char *argv[])
 
     unsigned code = 0;
 
-    audioMasterData effectData[3] = {{0}, {1}, {2}};
+    audioMasterData effectData[3] = { {0}, {1}, {2} };
 
     std::vector<uint8_t> State;
 
@@ -408,9 +408,9 @@ int main(int argc, const char *argv[])
 
     {
         INITCOMMONCONTROLSEX icc =
-            {
-                sizeof(icc),
-                ICC_WIN95_CLASSES | ICC_COOL_CLASSES | ICC_STANDARD_CLASSES};
+        {
+            sizeof(icc),
+            ICC_WIN95_CLASSES | ICC_COOL_CLASSES | ICC_STANDARD_CLASSES };
 
         if (!::InitCommonControlsEx(&icc))
             return 4;
@@ -426,12 +426,12 @@ int main(int argc, const char *argv[])
     dll_dir = argv[1];
     dll_dir = dll_dir.substr(0, dll_dir.find_last_of("/\\") + 1);
 
-    float **float_list_in = nullptr;
-    float **float_list_out = nullptr;
-    float *float_null = nullptr;
-    float *float_out = nullptr;
+    float** float_list_in = nullptr;
+    float** float_list_out = nullptr;
+    float* float_null = nullptr;
+    float* float_out = nullptr;
     uint32_t max_num_outputs;
-    AEffect *Effect[3] = {0, 0, 0};
+    AEffect* Effect[3] = { 0, 0, 0 };
     main_func Main;
 
     HMODULE hDll = ::LoadLibraryA(argv[1]);
@@ -473,7 +473,7 @@ int main(int argc, const char *argv[])
         Effect[0]->user = &effectData[0];
         Effect[0]->dispatcher(Effect[0], effOpen, 0, 0, 0, 0);
 
-        if ((Effect[0]->dispatcher(Effect[0], effGetPlugCategory, 0, 0, 0, 0) != kPlugCategSynth) || (Effect[0]->dispatcher(Effect[0], effCanDo, 0, 0, (void *)"receiveVstMidiEvent", 0) < 1))
+        if ((Effect[0]->dispatcher(Effect[0], effGetPlugCategory, 0, 0, 0, 0) != kPlugCategSynth) || (Effect[0]->dispatcher(Effect[0], effCanDo, 0, 0, (void*)"receiveVstMidiEvent", 0) < 1))
         {
             code = 9;
             goto exit;
@@ -483,9 +483,9 @@ int main(int argc, const char *argv[])
     max_num_outputs = (uint32_t)min(Effect[0]->numOutputs, 2);
 
     {
-        char name_string[256] = {0};
-        char vendor_string[256] = {0};
-        char product_string[256] = {0};
+        char name_string[256] = { 0 };
+        char vendor_string[256] = { 0 };
+        char product_string[256] = { 0 };
 
         uint32_t name_string_length;
         uint32_t vendor_string_length;
@@ -646,7 +646,7 @@ int main(int argc, const char *argv[])
 
         case VSTHostCommand::SendMIDIEvent: // Send MIDI Event
         {
-            myVstEvent *ev = (myVstEvent *)calloc(sizeof(myVstEvent), 1);
+            myVstEvent* ev = (myVstEvent*)calloc(sizeof(myVstEvent), 1);
 
             if (ev != nullptr)
             {
@@ -677,7 +677,7 @@ int main(int argc, const char *argv[])
 
         case VSTHostCommand::SendSysexEvent: // Send System Exclusive Event
         {
-            myVstEvent *ev = (myVstEvent *)calloc(sizeof(myVstEvent), 1);
+            myVstEvent* ev = (myVstEvent*)calloc(sizeof(myVstEvent), 1);
 
             if (ev != nullptr)
             {
@@ -701,7 +701,7 @@ int main(int argc, const char *argv[])
                 ev->ev.sysexEvent.type = kVstSysExType;
                 ev->ev.sysexEvent.byteSize = sizeof(ev->ev.sysexEvent);
                 ev->ev.sysexEvent.dumpBytes = (VstInt32)size;
-                ev->ev.sysexEvent.sysexDump = (char *)::malloc(size);
+                ev->ev.sysexEvent.sysexDump = (char*)::malloc(size);
 
                 get_bytes(ev->ev.sysexEvent.sysexDump, size);
 
@@ -764,7 +764,7 @@ int main(int argc, const char *argv[])
 
                 {
                     {
-                        size_t buffer_size = sizeof(float *) * (Effect[0]->numInputs + (Effect[0]->numOutputs * 3)); // float lists
+                        size_t buffer_size = sizeof(float*) * (Effect[0]->numInputs + (Effect[0]->numOutputs * 3)); // float lists
 
                         buffer_size += sizeof(float) * BUFFER_SIZE;                             // null input
                         buffer_size += sizeof(float) * BUFFER_SIZE * Effect[0]->numOutputs * 3; // outputs
@@ -772,9 +772,9 @@ int main(int argc, const char *argv[])
                         State.resize(buffer_size);
                     }
 
-                    float_list_in = (float **)State.data();
+                    float_list_in = (float**)State.data();
                     float_list_out = float_list_in + Effect[0]->numInputs;
-                    float_null = (float *)(float_list_out + Effect[0]->numOutputs * 3);
+                    float_null = (float*)(float_list_out + Effect[0]->numOutputs * 3);
                     float_out = float_null + BUFFER_SIZE;
 
                     for (uint32_t i = 0; i < (uint32_t)Effect[0]->numInputs; ++i)
@@ -819,13 +819,13 @@ int main(int argc, const char *argv[])
                 }
             }
 
-            VstEvents *events[3] = {0};
+            VstEvents* events[3] = { 0 };
 
             if (_EventHead)
             {
-                unsigned event_count[3] = {0};
+                unsigned event_count[3] = { 0 };
 
-                myVstEvent *ev = _EventHead;
+                myVstEvent* ev = _EventHead;
 
                 while (ev)
                 {
@@ -837,7 +837,7 @@ int main(int argc, const char *argv[])
                 if (event_count[0] != 0)
                 {
                     //                      events[0] = (VstEvents *) malloc(sizeof(VstInt32) + sizeof(VstIntPtr) + (sizeof(VstEvent *) * event_count[0]));
-                    events[0] = (VstEvents *)malloc(offsetof(struct VstEvents, events) - offsetof(struct VstEvents, numEvents) + (sizeof(VstEvent *) * event_count[0]));
+                    events[0] = (VstEvents*)malloc(offsetof(struct VstEvents, events) - offsetof(struct VstEvents, numEvents) + (sizeof(VstEvent*) * event_count[0]));
 
                     events[0]->numEvents = (VstInt32)event_count[0];
                     events[0]->reserved = 0;
@@ -847,7 +847,7 @@ int main(int argc, const char *argv[])
                     for (unsigned i = 0; ev;)
                     {
                         if (!ev->port)
-                            events[0]->events[i++] = (VstEvent *)&ev->ev;
+                            events[0]->events[i++] = (VstEvent*)&ev->ev;
 
                         ev = ev->next;
                     }
@@ -858,7 +858,7 @@ int main(int argc, const char *argv[])
                 if (event_count[1] != 0)
                 {
                     //                      events[1] = (VstEvents *) malloc(sizeof(VstInt32) + sizeof(VstIntPtr) + (sizeof(VstEvent *) * event_count[1]));
-                    events[1] = (VstEvents *)malloc(offsetof(struct VstEvents, events) - offsetof(struct VstEvents, numEvents) + (sizeof(VstEvent *) * event_count[1]));
+                    events[1] = (VstEvents*)malloc(offsetof(struct VstEvents, events) - offsetof(struct VstEvents, numEvents) + (sizeof(VstEvent*) * event_count[1]));
 
                     events[1]->numEvents = (VstInt32)event_count[1];
                     events[1]->reserved = 0;
@@ -868,7 +868,7 @@ int main(int argc, const char *argv[])
                     for (unsigned i = 0; ev;)
                     {
                         if (ev->port == 1)
-                            events[1]->events[i++] = (VstEvent *)&ev->ev;
+                            events[1]->events[i++] = (VstEvent*)&ev->ev;
 
                         ev = ev->next;
                     }
@@ -879,7 +879,7 @@ int main(int argc, const char *argv[])
                 if (event_count[2] != 0)
                 {
                     //                      events[2] = (VstEvents *) malloc(sizeof(VstInt32) + sizeof(VstIntPtr) + (sizeof(VstEvent *) * event_count[2]));
-                    events[2] = (VstEvents *)malloc(offsetof(struct VstEvents, events) - offsetof(struct VstEvents, numEvents) + (sizeof(VstEvent *) * event_count[2]));
+                    events[2] = (VstEvents*)malloc(offsetof(struct VstEvents, events) - offsetof(struct VstEvents, numEvents) + (sizeof(VstEvent*) * event_count[2]));
 
                     events[2]->numEvents = (VstInt32)event_count[2];
                     events[2]->reserved = 0;
@@ -889,7 +889,7 @@ int main(int argc, const char *argv[])
                     for (unsigned i = 0; ev;)
                     {
                         if (ev->port == 2)
-                            events[2]->events[i++] = (VstEvent *)&ev->ev;
+                            events[2]->events[i++] = (VstEvent*)&ev->ev;
 
                         ev = ev->next;
                     }
@@ -934,20 +934,20 @@ int main(int argc, const char *argv[])
                     Effect[1]->processReplacing(Effect[1], float_list_in, float_list_out + num_outputs, (VstInt32)SamplesToDo);
                     Effect[2]->processReplacing(Effect[2], float_list_in, float_list_out + num_outputs * 2, (VstInt32)SamplesToDo);
 
-                    float *out = sample_buffer.data();
+                    float* out = sample_buffer.data();
 
                     if (max_num_outputs == 2)
                     {
                         for (unsigned i = 0; i < SamplesToDo; ++i)
                         {
                             float sample = (float_out[i] +
-                                            float_out[i + BUFFER_SIZE * num_outputs] +
-                                            float_out[i + BUFFER_SIZE * num_outputs * 2]);
+                                float_out[i + BUFFER_SIZE * num_outputs] +
+                                float_out[i + BUFFER_SIZE * num_outputs * 2]);
                             out[0] = sample;
 
                             sample = (float_out[i + BUFFER_SIZE] +
-                                      float_out[i + BUFFER_SIZE + BUFFER_SIZE * num_outputs] +
-                                      float_out[i + BUFFER_SIZE + BUFFER_SIZE * num_outputs * 2]);
+                                float_out[i + BUFFER_SIZE + BUFFER_SIZE * num_outputs] +
+                                float_out[i + BUFFER_SIZE + BUFFER_SIZE * num_outputs * 2]);
 
                             out[1] = sample;
 
@@ -959,8 +959,8 @@ int main(int argc, const char *argv[])
                         for (unsigned i = 0; i < SamplesToDo; ++i)
                         {
                             float sample = (float_out[i] +
-                                            float_out[i + BUFFER_SIZE * num_outputs] +
-                                            float_out[i + BUFFER_SIZE * num_outputs * 2]);
+                                float_out[i + BUFFER_SIZE * num_outputs] +
+                                float_out[i + BUFFER_SIZE * num_outputs * 2]);
                             out[0] = sample;
 
                             out++;
@@ -988,7 +988,7 @@ int main(int argc, const char *argv[])
 
         case VSTHostCommand::SendMIDIEventWithTimestamp: // Send MIDI Event, with timestamp
         {
-            myVstEvent *ev = (myVstEvent *)calloc(sizeof(myVstEvent), 1);
+            myVstEvent* ev = (myVstEvent*)calloc(sizeof(myVstEvent), 1);
 
             if (evTail)
                 evTail->next = ev;
@@ -1017,7 +1017,7 @@ int main(int argc, const char *argv[])
 
         case VSTHostCommand::SendSysexEventWithTimestamp: // Send System Exclusive Event, with timestamp
         {
-            myVstEvent *ev = (myVstEvent *)calloc(sizeof(myVstEvent), 1);
+            myVstEvent* ev = (myVstEvent*)calloc(sizeof(myVstEvent), 1);
 
             if (evTail)
                 evTail->next = ev;
@@ -1039,7 +1039,7 @@ int main(int argc, const char *argv[])
             ev->ev.sysexEvent.type = kVstSysExType;
             ev->ev.sysexEvent.byteSize = sizeof(ev->ev.sysexEvent);
             ev->ev.sysexEvent.dumpBytes = (VstInt32)size;
-            ev->ev.sysexEvent.sysexDump = (char *)malloc(size);
+            ev->ev.sysexEvent.sysexDump = (char*)malloc(size);
             ev->ev.sysexEvent.deltaFrames = (VstInt32)timestamp;
 
             get_bytes(ev->ev.sysexEvent.sysexDump, size);
