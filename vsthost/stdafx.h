@@ -4,11 +4,9 @@
 //
 #pragma once
 
-#pragma warning(disable : 5045) // Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
-
 #include "targetver.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <tchar.h>
 
 // TODO: reference additional headers your program requires here
@@ -20,12 +18,12 @@
 #include <objbase.h>
 #include <commctrl.h>
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <fcntl.h>
 #include <io.h>
-
 #include <vector>
+#include <string>
 
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
@@ -34,8 +32,29 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
+enum class VSTHostCommand : uint32_t
+{
+    Exit = 0,
+    GetChunk,
+    SetChunk,
+    HasEditor,
+    DisplayEditorModal,
+    SetSampleRate,
+    Reset,
+    SendMIDIEvent,
+    SendSysexEvent,
+    RenderSamples,
+    SendMIDIEventWithTimestamp,
+    SendSysexEventWithTimestamp,
+};
+
+enum
+{
+    BUFFER_SIZE = 4096
+};
+
 template <typename T>
-static void append_be(std::vector<uint8_t>& out, const T& value)
+static void append_be(std::vector<uint8_t> &out, const T &value)
 {
     union
     {
@@ -52,7 +71,7 @@ static void append_be(std::vector<uint8_t>& out, const T& value)
 }
 
 template <typename T>
-static void retrieve_be(T& out, const uint8_t*& in, unsigned& size)
+static void retrieve_be(T &out, const uint8_t *&in, unsigned &size)
 {
     if (size < sizeof(T))
         return;
